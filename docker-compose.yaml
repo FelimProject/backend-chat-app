@@ -4,8 +4,6 @@ services:
     build: ./user
     env_file:
       - ./user/.env
-    ports:
-      - "3001:3001"
     networks:
       - app-network
 
@@ -14,8 +12,6 @@ services:
     build: ./chat
     env_file:
       - ./chat/.env
-    ports:
-      - "3002:3002"
     networks:
       - app-network
     depends_on:
@@ -25,8 +21,6 @@ services:
     build: ./email
     env_file:
       - ./email/.env
-    ports:
-      - "3003:3003"
     networks:
       - app-network
 
