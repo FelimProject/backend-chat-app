@@ -3,18 +3,24 @@ import dotenv from 'dotenv';
 import connectDb from './config/db';
 import { createClient } from 'redis';
 import userRoutes from './routes/user';
-import { connectRabbitMQ } from './config/rabbitmq';
+import { connectKafka } from './config/kafka';
 import cors from 'cors';
 
 dotenv.config();
 
 connectDb();
 
-connectRabbitMQ();
+connectKafka();
 
 export const redisClient = createClient({
-    url : process.env.REDIS_URL
-})
+    url: process.env.REDIS_URL,
+    socket: {
+        tls: true,
+        host: process.env.REDIS_HOST as string,
+        port: Number(process.env.REDIS_PORT),
+    },
+});
+
 
 redisClient.connect().then(() => console.log("connected to redis")).catch(console.error)
 

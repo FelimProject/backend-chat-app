@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { redisClient } from "..";
-import { publishToQueue } from "../config/rabbitmq";
+import { publishToTopic } from "../config/kafka";
 import TryCatch from "../config/TryCatch";
 import { User } from "../model/User";
 import { generateToken } from "../config/generateToken";
@@ -20,7 +20,7 @@ export const loginUser = TryCatch(async(req : Request , res : Response) => {
         return;
     }
 
-    const otp = Math.floor(100000 +  Math.random() * 9).toString();
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
     const otpKey = `otp:${email}`
 
@@ -38,7 +38,7 @@ export const loginUser = TryCatch(async(req : Request , res : Response) => {
         body :  `Your OTP is ${otp}. IT is valid for 5 minutes`
     }
 
-    await publishToQueue("send-otp", message);
+    await publishToTopic("send-otp", message);
 
     res.status(200).json({message : `sucessfully send OTP to ${email}`});
 
@@ -59,7 +59,7 @@ export const verifyUser = TryCatch(async(req : Request , res : Response) => {
 
     const storedOtp = await redisClient.get(otpKey);
 
-    if(!storedOtp || storedOtp !== enteredOtp){
+    if(!storedOtp || Number(storedOtp) !== Number(enteredOtp)){
         res.status(400).json({
             message : "Invalid or expired OTP"
         });
@@ -90,7 +90,17 @@ export const verifyUser = TryCatch(async(req : Request , res : Response) => {
  export const myProfile = TryCatch(async(req: AuthenticatedRequest , res : Response) => {
     const user = req.user;
 
-    res.json(user);
+    if(!user){
+        res.status(404).json({
+            message : "Please login"
+        });
+
+        return;
+    }
+
+    const dbUser = await User.findById(req.user?._id);
+
+    res.json(dbUser);
  })
 
  export const updateName = TryCatch(async(req: AuthenticatedRequest , res : Response) => {

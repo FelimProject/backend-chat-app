@@ -1,37 +1,42 @@
-import amqp from 'amqplib';
+import { Kafka, Consumer } from 'kafkajs';
 import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const kafka = new Kafka({
+    clientId: 'mail-service',
+    brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+});
+
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASSWORD
+    }
+});
+
 
 export const startSendOtpConsumer = async () => {
+    const consumer: Consumer = kafka.consumer({ 
+        groupId: 'mail-service-group' 
+    });
+
     try {
-        const connection = await amqp.connect({
-            protocol: "amqp",
-            hostname: process.env.RABBIT_MQ_HOST,
-            port: parseInt(String(process.env.RABBIT_MQ_PORT)),
-            username: process.env.RABBIT_MQ_USERNAME,
-            password: process.env.RABBIT_MQ_PASSWORD
+        await consumer.connect();
+        await consumer.subscribe({ 
+            topic: 'send-otp', 
+            fromBeginning: false  
         });
 
-        const channel = await connection.createChannel();
-        const queueName = "send-otp";
+        await consumer.run({
+            eachMessage: async ({ message }) => {
+                if (!message.value) return;
 
-        await channel.assertQueue(queueName, { durable: true });
-
-        const transporter = nodemailer.createTransport({
-            host: "smtp.gmail.com",
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.MAIL_USER,
-                pass: process.env.MAIL_PASSWORD
-            }
-        });
-
-        channel.consume(queueName, async (msg) => {
-            if (msg) {
                 try {
-                    const message = JSON.parse(msg.content.toString());
-
-                    const { to, subject, body } = message;
+                    const { to, subject, body } = JSON.parse(message.value.toString());
 
                     const result = await transporter.sendMail({
                         from: process.env.MAIL_USER,
@@ -41,16 +46,16 @@ export const startSendOtpConsumer = async () => {
                     });
 
                     console.log(`OTP sent successfully to ${to}. Message ID: ${result.messageId}`);
-                    channel.ack(msg);
-                    
+
                 } catch (error) {
                     console.error(`Failed to send OTP:`, error instanceof Error ? error.message : error);
-                    channel.ack(msg); 
                 }
             }
         });
 
+        console.log('Kafka OTP consumer started');
     } catch (error) {
-        console.error(`Failed to start rabbitmq consumer:`, error);
+        console.error('Failed to start Kafka consumer:', error);
+        await consumer.disconnect();
     }
-}
+};
