@@ -1,19 +1,14 @@
-FROM alpine:3.21
-
-RUN apk add --no-cache nodejs npm
+FROM node:slim
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY --chown=node:node package*.json ./
+
 RUN npm install --omit=dev
 
-COPY . .
+COPY --chown=node:node . .
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup \
-    && mkdir -p /app/dist \
-    && chown -R appuser:appgroup /app
-
-USER appuser
+USER node
 
 EXPOSE 3000
 
