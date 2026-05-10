@@ -5,7 +5,8 @@ services:
     env_file:
       - ./user/.env
     networks:
-      - app-network
+      infra-shared:
+        ipv4_address: ${USER_IP_ADDRESS}
 
 
   chat:
@@ -13,7 +14,9 @@ services:
     env_file:
       - ./chat/.env
     networks:
-      - app-network
+      infra-shared:
+        ipv4_address: ${CHAT_IP_ADDRESS}
+
     depends_on:
       - user
 
@@ -22,7 +25,8 @@ services:
     env_file:
       - ./email/.env
     networks:
-      - app-network
+      infra-shared:
+        ipv4_address: ${EMAIL_IP_ADDRESS}
 
     depends_on:
       - user
@@ -30,3 +34,6 @@ services:
 networks:
   app-network:
     driver: bridge
+
+  infra-shared:
+    external: true
