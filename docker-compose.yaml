@@ -32,8 +32,6 @@ services:
       - user
 
 networks:
-  app-network:
-    driver: bridge
 
   infra-shared:
     external: true
