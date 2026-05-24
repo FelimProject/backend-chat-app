@@ -14,13 +14,7 @@ connectKafka();
 
 export const redisClient = createClient({
     url: process.env.REDIS_URL,
-    socket: {
-        tls: true,
-        host: process.env.REDIS_HOST as string,
-        port: Number(process.env.REDIS_PORT),
-    },
 });
-
 
 redisClient.connect().then(() => console.log("connected to redis")).catch(console.error)
 
