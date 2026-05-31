@@ -4,7 +4,6 @@ import connectDb from './config/db';
 import { createClient } from 'redis';
 import userRoutes from './routes/user';
 import { connectKafka } from './config/kafka';
-import cors from 'cors';
 
 dotenv.config();
 

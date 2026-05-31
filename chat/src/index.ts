@@ -2,7 +2,6 @@ import express , { Express } from 'express';
 import dotenv from 'dotenv';
 import connectDb from './config/db';
 import chatRoutes from './routes/chat';
-import cors from 'cors'
 import { app , server } from './config/socket';
 
 dotenv.config();
