@@ -9,12 +9,6 @@ dotenv.config();
 
 connectDb();
 
-app.use(cors({
-    origin : process.env.FRONT_END_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
 
 app.use(express.json())
 
