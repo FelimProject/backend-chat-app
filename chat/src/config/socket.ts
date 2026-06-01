@@ -9,13 +9,7 @@ const app : Express = express();
 
 const server = http.createServer(app);
 
-const io = new Server(server , {
-        cors: {
-            origin : process.env.FRONT_END_URL,
-            methods: ["GET", "POST"]
-        }
-    }
-);
+const io = new Server(server)
 
 const userSocketMap : Record<string , string> = {};
 
