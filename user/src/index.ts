@@ -14,17 +14,16 @@ connectKafka();
 export const redisClient = createClient({
     url: process.env.REDIS_URL,
     socket: {
-        tls: true,
         reconnectStrategy: (retries) => {
-          console.log(`Redis reconnect attempt ${retries}`);
+          console.log(`Redis reconnect ${retries}`);
     
-          if (retries > 20) {
-            return new Error('Too many retries.');
-          }
-    
-          return Math.min(retries * 200, 5000);
+        if (retries > 20) {
+            return new Error('Retry attempts exhausted');
         }
-      }
+    
+        return Math.min(retries * 200, 5000);
+    }
+  }
 });
 
 redisClient.connect().then(() => console.log("connected to redis")).catch(console.error)
